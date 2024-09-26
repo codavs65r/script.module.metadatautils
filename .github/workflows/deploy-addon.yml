@@ -1,0 +1,29 @@
+name: Deploy Addon metadatautils
+
+on: 
+  workflow_dispatch:
+jobs:
+  package:
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./        
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Repo directory
+        run: |          
+          REPO_DIR=/opt/actions-runner-share/kodi/repo/${{ github.head_ref }}/script.module.metadatautils
+          rm -rf $REPO_DIR
+          mkdir -p $REPO_DIR/resources
+          cp -r addon.xml $REPO_DIR/
+          cp -r resources/*.png $REPO_DIR/resources/
+      - name: Zip it
+        run: |          
+          REPO_DIR=/opt/actions-runner-share/kodi/repo/${{ github.head_ref }}/script.module.metadatautils
+          ADDON_VERSION=$(/usr/bin/xmllint --xpath 'string(//addon/@version)' addon.xml)
+          cd ../
+          zip -r $REPO_DIR/script.module.metadatautils-$ADDON_VERSION.zip ./* -x \*bin\* \*themes\* \*md5\* \*.zip \*.git*\* \*.idea\* \*.DS_Store\*
+          /usr/bin/md5sum $REPO_DIR/script.module.metadatautils-$ADDON_VERSION.zip > $REPO_DIR/script.module.metadatautils-$ADDON_VERSION.zip.md5
